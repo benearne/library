@@ -12,20 +12,20 @@ function addBookToLibrary(title, author, pages, read) {
     myLibrary.push(new Book(title, author, pages, read));
 }
 
-addBookToLibrary("hobbit", "tolkien", 333, true)
-addBookToLibrary("mr x", "ben", 322, false)
-addBookToLibrary("hello world", "jss", 22, false)
-addBookToLibrary("book number 5", "noone", 90, false)
-
-
 function displayBooks() {
-    const chart = document.getElementById("chart")
-    chart.innerHTML = ""; // Vorher leeren, damit doppelte Einträge vermieden werden
+    if (myLibrary.length === 0) {
+        document.getElementById("library").style.display = "none";
+    } else {
+        document.getElementById("library").style.display = "block";
+    }
+    
+    const books = document.getElementById("books");
+    books.innerHTML = "";
 
     myLibrary.forEach(book => {
         const newBook = document.createElement("div");
         newBook.className = "book";
-        chart.appendChild(newBook);
+        books.appendChild(newBook);
 
         const title = document.createElement("div");
         title.textContent = book.title;
@@ -40,28 +40,39 @@ function displayBooks() {
         newBook.appendChild(pages);
 
         const read = document.createElement("div");
+        read.className = "read";
+        const readCheck = document.createElement("div");
+        readCheck.id = 'status ' + book.id;
         if (book.read) {
-            read.textContent = 'read';
+            readCheck.textContent = 'read';
+            readCheck.classList.remove("red");
+            readCheck.classList.add("green");
+            read.appendChild(readCheck);
         } else {
-            read.textContent = 'not read';
+            readCheck.textContent = 'not read yet';
+            readCheck.className = "red";
+            const readBttn = document.createElement("button");
+            readBttn.textContent = 'I read it now!';
+            readBttn.className = "readBttn"
+            readBttn.id = 'bttn ' + book.id;
+            readBttn.addEventListener("click", readBook);
+            read.appendChild(readCheck);
+            read.appendChild(readBttn);
         }
         newBook.appendChild(read);
 
-        const id = document.createElement("div");
-        id.textContent = book.id;
-        newBook.appendChild(id);
-
         const remove = document.createElement("button");
         remove.textContent = "remove";
+        remove.id = book.id;
         remove.className = "removeButton";
-        remove.dataset.id = book.id;
         remove.addEventListener("click", removeFunc);
         newBook.appendChild(remove);
     }) 
+    console.table(myLibrary)
 }
 
 function removeFunc(event) {
-    const bookId = event.target.dataset.id;
+    const bookId = event.target.id;
     const index = myLibrary.findIndex(book => book.id === bookId);
     if (index !== -1) {
         myLibrary.splice(index, 1);
@@ -69,5 +80,43 @@ function removeFunc(event) {
     }
 }
 
+function saveBook() {
+
+    const form = document.getElementById("newbook");
+    
+    const title = document.getElementById("title").value;
+    if (title === "") {
+        alert("please enter title");
+        return;
+    }
+    const author = document.getElementById("author").value;
+    if (author === "") {
+        alert("please enter author");
+        return;
+    }
+    const pages = parseInt(document.getElementById("pages").value);
+    if (isNaN(pages) || pages <= 0) {
+        alert("please enter pages");
+        return;
+    }
+    const read = document.getElementById("read").checked;
+
+    myLibrary.push(new Book(title, author, pages, read));
+
+    displayBooks();
+    form.reset();
+}
+
+function readBook(event) {
+    const bttnId = event.target.id;
+    const bttn = document.getElementById(bttnId);
+
+    const statusId = bttnId.replace("bttn ", "status ");
+
+    const bookId = bttnId.replace("bttn ", "");
+    const index = myLibrary.findIndex(book => book.id === bookId);
+    myLibrary[index].read = true;
+    displayBooks();
+}
 
 displayBooks()
