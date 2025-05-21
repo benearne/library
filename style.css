@@ -1,6 +1,22 @@
-* {
+*,
+html {
     display: block;
     padding: none;
     margin: none;
     text-decoration: none;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.chart {
+    padding: none;
+}
+
+.header,
+.book {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.header {
+    font-weight: bold;
 }
