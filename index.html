@@ -11,24 +11,24 @@
         <h2>New Book</h2>
         <form id="newbook">
             <label for="title">Title: </label>
-            <input type="text" id="title" name="title" placeholder="Title">
+            <input type="text" id="title" name="title" placeholder="Title" minlength="3" required>
 
             <label for="author">Author: </label>
-            <input type="text" id="author" name="author" placeholder="Author">
+            <input type="text" id="author" name="author" placeholder="Author" required>
 
             <label for="pages">Pages: </label>
-            <input type="number" id="pages" name="pages" placeholder="Pages">
+            <input type="number" id="pages" name="pages" placeholder="Pages" required>
 
             <label for="read">
                 <input type="checkbox" id="read" name="read" value="read">
                 I have read this book
             </label> 
         
-            <button type="button" onclick="saveBook()">Save Book</button>
+            <button type="button" onclick="saveBookFromForm()">Save Book</button>
         </form>
     </div>
     
-    <div id="library" class="library">
+    <div id="library" class="library" style="display: none;">
         <h1>My Library</h1>
         <div class="chart" id="chart">
             <div class="header">

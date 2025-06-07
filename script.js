@@ -1,122 +1,118 @@
-const myLibrary = [];
-
-function Book(title, author, pages, read) {
-    this.title = title;
-    this.author = author;
-    this.pages = pages;
-    this.read = read;
-    this.id = crypto.randomUUID();
-}
-
-function addBookToLibrary(title, author, pages, read) {
-    myLibrary.push(new Book(title, author, pages, read));
-}
-
-function displayBooks() {
-    if (myLibrary.length === 0) {
-        document.getElementById("library").style.display = "none";
-    } else {
-        document.getElementById("library").style.display = "block";
-    }
-    
-    const books = document.getElementById("books");
-    books.innerHTML = "";
-
-    myLibrary.forEach(book => {
-        const newBook = document.createElement("div");
-        newBook.className = "book";
-        books.appendChild(newBook);
-
-        const title = document.createElement("div");
-        title.textContent = book.title;
-        newBook.appendChild(title);
-
-        const author = document.createElement("div");
-        author.textContent = book.author;
-        newBook.appendChild(author);
-
-        const pages = document.createElement("div");
-        pages.textContent = book.pages;
-        newBook.appendChild(pages);
-
-        const read = document.createElement("div");
-        read.className = "read";
-        const readCheck = document.createElement("div");
-        readCheck.id = 'status ' + book.id;
-        if (book.read) {
-            readCheck.textContent = 'read';
-            readCheck.classList.remove("red");
-            readCheck.classList.add("green");
-            read.appendChild(readCheck);
-        } else {
-            readCheck.textContent = 'not read yet';
-            readCheck.className = "red";
-            const readBttn = document.createElement("button");
-            readBttn.textContent = 'I read it now!';
-            readBttn.className = "readBttn"
-            readBttn.id = 'bttn ' + book.id;
-            readBttn.addEventListener("click", readBook);
-            read.appendChild(readCheck);
-            read.appendChild(readBttn);
-        }
-        newBook.appendChild(read);
-
-        const remove = document.createElement("button");
-        remove.textContent = "remove";
-        remove.id = book.id;
-        remove.className = "removeButton";
-        remove.addEventListener("click", removeFunc);
-        newBook.appendChild(remove);
-    }) 
-    console.table(myLibrary)
-}
-
-function removeFunc(event) {
-    const bookId = event.target.id;
-    const index = myLibrary.findIndex(book => book.id === bookId);
-    if (index !== -1) {
-        myLibrary.splice(index, 1);
-        displayBooks();
+class Book {
+    constructor(title, author, pages, read) {
+        this.title = title;
+        this.author = author;
+        this.pages = pages;
+        this.read = read;
+        this.id = crypto.randomUUID();
     }
 }
 
-function saveBook() {
-
-    const form = document.getElementById("newbook");
+class Library {
+    constructor() {
+        this.books = [];
+    }
     
+    addBook(title, author, pages, read) {
+        this.books.push(new Book(title, author, pages, read));
+        this.displayBooks();
+    }
+
+    updateBook(id, props) {
+        const book = this.books.find(book => book.id === id);
+        if (book) Object.assign(book, props);
+        this.displayBooks();
+    }
+
+    removeBook(id) {
+        this.books = this.books.filter(book => book.id !== id);
+        this.displayBooks();
+    }
+
+    displayBooks() {
+        const library = document.getElementById("library");
+        const container = document.getElementById("books");
+        container.innerHTML = "";
+
+        if (this.books.length === 0) {
+            library.style.display = "none";
+            return;
+        }  
+
+        library.style.display = "block";
+        
+        this.books.forEach(book => {
+            const bookEl = document.createElement("div");
+            bookEl.className = "book";
+            bookEl.innerHTML = `
+                <div>${book.title}</div>
+                <div>${book.author}</div>
+                <div>${book.pages}</div>
+                <div class="read">
+                    <div id="status ${book.id}" class="${book.read ? 'green' : 'red'}">
+                        ${book.read ? 'read' : 'not read yet'}
+                    </div>
+                    ${book.read ? '' : `<button id="bttn ${book.id}" class="readBttn">I read it now!</button>`}
+                </div>
+                <button id="${book.id}" class="removeButton">remove</button>
+            `;
+
+            container.appendChild(bookEl);
+
+
+            if (!book.read) {
+                bookEl.querySelector(`#bttn\\ ${book.id}`).addEventListener("click", () => {
+                    this.updateBook(book.id, { read: true });
+                });
+            }
+
+            bookEl.querySelector(`#${book.id}`).addEventListener("click", () => {
+                this.removeBook(book.id);
+            });
+        });
+    }
+}
+
+const myLibrary = new Library();
+
+function saveBookFromForm() {
     const title = document.getElementById("title").value;
-    if (title === "") {
-        alert("please enter title");
-        return;
-    }
     const author = document.getElementById("author").value;
-    if (author === "") {
-        alert("please enter author");
-        return;
-    }
     const pages = parseInt(document.getElementById("pages").value);
-    if (isNaN(pages) || pages <= 0) {
-        alert("please enter pages");
-        return;
-    }
     const read = document.getElementById("read").checked;
 
-    myLibrary.push(new Book(title, author, pages, read));
-
-    displayBooks();
-    form.reset();
+    if (title === "" || author === "" || isNaN(pages) || pages <= 0) {
+        alert("please fill in all fields correctly");
+        return;
+    }
+    myLibrary.addBook(title, author, pages, read);
+    document.getElementById("newbook").reset();
 }
 
-function readBook(event) {
-    const bttnId = event.target.id;
-    const bttn = document.getElementById(bttnId);
+const title = document.getElementById("title");
 
-    const statusId = bttnId.replace("bttn ", "status ");
+title.addEventListener("input", () => {
+	// Wenn das Feld leer ist
+	if (title.validity.valueMissing) {
+		title.setCustomValidity("Please enter a title.");
+	} 
+	// Wenn es zu kurz ist
+	else if (title.validity.tooShort) {
+		title.setCustomValidity("The title must be at least 3 characters long.");
+	} 
+	// Wenn alles okay ist
+	else {
+		title.setCustomValidity("");
+	}
 
-    const bookId = bttnId.replace("bttn ", "");
-    const index = myLibrary.findIndex(book => book.id === bookId);
-    myLibrary[index].read = true;
-    displayBooks();
-}
+	title.reportValidity(); // zeigt die custom message an
+});
 
-displayBooks()
+const pages = document.getElementById("pages");
+pages.addEventListener("input", () => {
+	if (isNaN(pages.value) || pages.validity.badInput || parseInt(pages.value) <= 0) {
+		pages.setCustomValidity("Pages must be a positive number!");
+	} else {
+		pages.setCustomValidity("");
+	}
+});
